@@ -1,59 +1,56 @@
-from fastapi import FastAPI, WebSocket
 import cv2
 import numpy as np
 import base64
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from ultralytics import YOLO
+import asyncio
 
 app = FastAPI()
 
-
-# Load YOLOv10n model
+# 加载 YOLO 模型
 model = YOLO("yolov8n.pt")
-# Display model information (optional)
-model.info()
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        
-        # Decode base64 image
-        img_data = base64.b64decode(data.split(',')[1])
-        nparr = np.frombuffer(img_data, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        
-        # Convert BGR to RGB
-        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        
-        # Perform object detection
-        results = model(img_rgb)
-        
-        # Process results
-        for r in results:
-            boxes = r.boxes
-            for box in boxes:
-                # Get box coordinates
-                x1, y1, x2, y2 = box.xyxy[0]
-                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-                
-                # Draw bounding box
-                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                
-                # Get class and confidence
-                cls = int(box.cls[0])
-                conf = float(box.conf[0])
-                
-                # Draw label
-                label = f"{model.names[cls]} {conf:.2f}"
-                cv2.putText(img, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            
+            # 解码 Base64 图像
+            header, encoded = data.split(',', 1)
+            img_data = base64.b64decode(encoded)
+            nparr = np.frombuffer(img_data, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # Encode processed image to base64
-        _, buffer = cv2.imencode('.jpg', img)
-        img_base64 = base64.b64encode(buffer.tobytes()).decode('utf-8')
-        
-        # Send processed image back to client
-        await websocket.send_text(f"data:image/jpeg;base64,{img_base64}")
+            # 转换 BGR 到 RGB
+            img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+            # 使用 YOLO 进行目标检测
+            results = model(img_rgb)
+
+            # 处理检测结果并绘制边界框
+            for r in results:
+                boxes = r.boxes
+                for box in boxes:
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])
+                    cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                    
+                    cls = int(box.cls[0])
+                    conf = float(box.conf[0])
+                    
+                    label = f"{model.names[cls]} {conf:.2f}"
+                    cv2.putText(img, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+            
+            # 编码处理后的图像为 Base64
+            _, buffer = cv2.imencode('.jpg', img)
+            processed_image = base64.b64encode(buffer.tobytes()).decode('utf-8')
+            processed_image = f"data:image/jpeg;base64,{processed_image}"
+
+            # 发送处理后的图像回前端
+            await websocket.send_text(processed_image)
+    except WebSocketDisconnect:
+        print("Client disconnected")
 
 @app.get("/")
 async def get():
