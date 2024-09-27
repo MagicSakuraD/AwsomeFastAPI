@@ -47,40 +47,52 @@ with open('data.json', 'r') as file:
 # Prepare data for blue ball prediction
 prophet_df_blue = prepare_prophet_dataframe(json_data, y_option='blue')
 
-# Train and predict for blue ball
-m_blue = Prophet()
+# Train and predict for blue ball with optimized parameters
+m_blue =  Prophet()
 m_blue.fit(prophet_df_blue)
-future_blue = m_blue.make_future_dataframe(periods=3)
+future_blue = m_blue.make_future_dataframe(periods=1)
 forecast_blue = m_blue.predict(future_blue)
 
 # Print blue ball prediction results
 print("Blue Ball Prediction Results:")
-print(forecast_blue[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(3))
+print(forecast_blue[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(1))
 
 # Prepare and predict for each red ball position
 for i in range(1, 7):
     # Prepare data for red ball position i
     prophet_df_red = prepare_prophet_dataframe(json_data, y_option='red', red_position=i)
 
-    # Train and predict for red ball position i
-    m_red = Prophet()
+    # Train and predict for red ball position i with optimized parameters
+    m_red =  Prophet()
     m_red.fit(prophet_df_red)
-    future_red = m_red.make_future_dataframe(periods=3)
+    future_red = m_red.make_future_dataframe(periods=1)
     forecast_red = m_red.predict(future_red)
 
     # Print red ball position i prediction results
     print(f"\nRed Ball Position {i} Prediction Results:")
-    print(forecast_red[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(3))
-
+    print(forecast_red[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(1))
 # {
 #     "issue": "24110",
 #     "reds": [4, 13, 17, 23, 25, 33],
 #     "blue": 14
 #   },
 
+
 # {
-#     "issue": "24109",
-#     "reds": [3, 4, 24, 28, 29, 33],
+#     "issue": "21146",
+#     "reds": [7, 9, 21, 22, 26, 32],
+#     "blue": 3
+#   },
+#   {
+#     "issue": "21145",
+#     "reds": [4, 7, 10, 14, 16, 26],
 #     "blue": 9
 #   },
+#   {
+#     "issue": "21144",
+#     "reds": [2, 5, 13, 15, 23, 26],
+#     "blue": 7
+#   },
 
+#  2-14
+# 1-9, 3-15, 13-25, 
