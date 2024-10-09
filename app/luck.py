@@ -41,7 +41,7 @@ def prepare_prophet_dataframe(json_data, y_option='blue', red_position=None):
     return df
 
 # Read data from JSON file
-with open('data.json', 'r') as file:
+with open('history.json', 'r') as file:
     json_data = json.load(file)
 
 # Prepare data for blue ball prediction

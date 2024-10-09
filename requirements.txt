@@ -1,6 +1,8 @@
 fastapi
 websockets
 opencv-python
-numpy
+numpy==1.23.5
 ultralytics
 prophet
+keras
+tensorflow
