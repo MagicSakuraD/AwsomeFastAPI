@@ -41,14 +41,14 @@ def prepare_prophet_dataframe(json_data, y_option='blue', red_position=None):
     return df
 
 # Read data from JSON file
-with open('history.json', 'r') as file:
+with open('smalldata.json', 'r') as file:
     json_data = json.load(file)
 
 # Prepare data for blue ball prediction
 prophet_df_blue = prepare_prophet_dataframe(json_data, y_option='blue')
 
 # Train and predict for blue ball with optimized parameters
-m_blue =  Prophet()
+m_blue = Prophet(yearly_seasonality=False, weekly_seasonality=False, daily_seasonality=False) # type: ignore
 m_blue.fit(prophet_df_blue)
 future_blue = m_blue.make_future_dataframe(periods=1)
 forecast_blue = m_blue.predict(future_blue)
@@ -71,28 +71,4 @@ for i in range(1, 7):
     # Print red ball position i prediction results
     print(f"\nRed Ball Position {i} Prediction Results:")
     print(forecast_red[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(1))
-# {
-#     "issue": "24110",
-#     "reds": [4, 13, 17, 23, 25, 33],
-#     "blue": 14
-#   },
-
-
-# {
-#     "issue": "21146",
-#     "reds": [7, 9, 21, 22, 26, 32],
-#     "blue": 3
-#   },
-#   {
-#     "issue": "21145",
-#     "reds": [4, 7, 10, 14, 16, 26],
-#     "blue": 9
-#   },
-#   {
-#     "issue": "21144",
-#     "reds": [2, 5, 13, 15, 23, 26],
-#     "blue": 7
-#   },
-
-#  2-14
-# 1-9, 3-15, 13-25, 
+ 

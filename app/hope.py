@@ -1,20 +1,18 @@
 import numpy as np
 import json
 from keras.models import Sequential
-from keras.layers import LSTM, Dense
+from keras.layers import LSTM, Dense, Dropout
+from keras.callbacks import EarlyStopping
 
-# 从本地文件读取数据
-with open('history.json', 'r') as file:
+# Load the data
+with open('smalldata.json', 'r') as file:
     json_data = json.load(file)
 
-# 提取 reds 和 blue 组合特征
 reds = np.array([entry['reds'] for entry in json_data])
 blues = np.array([entry['blue'] for entry in json_data])
+combined_data = np.hstack((reds, blues.reshape(-1, 1)))  # Combine reds and blue
 
-# 合并 reds 和 blue 作为特征
-combined_data = np.hstack((reds, blues.reshape(-1, 1)))  # 将蓝球合并到红球后
-
-# 构建滑动窗口时序数据（例如使用前 3 期预测下 1 期）
+# Create sliding window sequences
 def create_sequences(data, n_steps):
     X, y = [], []
     for i in range(len(data) - n_steps):
@@ -22,23 +20,52 @@ def create_sequences(data, n_steps):
         y.append(data[i+n_steps])
     return np.array(X), np.array(y)
 
-# 我们使用前 3 期来预测下一期
-n_steps = 3
+n_steps = 5
 X, y = create_sequences(combined_data, n_steps)
 
-# 创建 LSTM 模型
+# Build the optimized LSTM model
 model = Sequential()
-model.add(LSTM(50, activation='relu', input_shape=(X.shape[1], X.shape[2])))  # 输入形状为 (时间步, 特征)
-model.add(Dense(y.shape[1]))  # 输出层，预测 reds 和 blue 的值（7 个数值）
-model.compile(optimizer='adam', loss='mse')
+model.add(LSTM(32, activation='tanh', return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
+model.add(LSTM(15, activation='tanh'))  # Second LSTM layer
+# model.add(Dropout(0.2))  # Dropout to prevent overfitting
+model.add(Dense(y.shape[1]))  # Output layer
+model.compile(optimizer='RMSprop', loss='mse')  # Using RMSprop optimizer
 
-# 打印模型总结
+# Print model summary
 model.summary()
 
-# 训练模型
-model.fit(X, y, epochs=300, batch_size=1, verbose=1) # type: ignore
+# Train the model with early stopping
+early_stopping = EarlyStopping(monitor='loss', patience=10)
+model.fit(X, y, epochs=300, batch_size=5, callbacks=[early_stopping], verbose=0) # type: ignore
 
-# 使用模型进行预测
-new_data = np.array([combined_data[-3:]])  # 最近的 3 期数据
+# Predict using the last 5 periods of data
+new_data = np.array([combined_data[-5:]])  # Use 5 periods of recent data
 predicted = model.predict(new_data)
 print("Predicted reds and blue:", predicted)
+
+
+# {
+#       "issue": "24115",
+#       "reds": [
+#         3,
+#         10,
+#         11,
+#         19,
+#         27,
+#         28
+#       ],
+#       "blue": 7
+#     },
+
+#  {
+#       "issue": "24114",
+#       "reds": [
+#         7,
+#         11,
+#         18,
+#         24,
+#         27,
+#         32
+#       ],
+#       "blue": 4
+#     },
