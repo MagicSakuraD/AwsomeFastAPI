@@ -14,7 +14,7 @@ blues = np.array([entry['blue'] for entry in json_data])
 combined_data = np.hstack((reds, blues.reshape(-1, 1)))  # Combine reds and blue
 
 # Define Reference values for standardization
-Referencevalue = np.array([4, 9, 14, 19, 24, 29, 8])
+Referencevalue = np.array([4, 9, 16, 20, 24, 29, 8])
 
 # Standardize data by subtracting Referencevalue
 standardized_data = combined_data - Referencevalue
@@ -32,11 +32,12 @@ X, y = create_sequences(standardized_data, n_steps)
 
 # Build the optimized LSTM model
 model = Sequential()
-model.add(LSTM(64, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
+model.add(LSTM(128, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
+model.add(LSTM(64, return_sequences=True))
 model.add(LSTM(32, return_sequences=True))
-model.add(LSTM(16, return_sequences=True))  # New LSTM layer
-model.add(LSTM(8))  # Last LSTM layer with return_sequences=False
-model.add(Dense(y.shape[1]))  # Output layer
+model.add(LSTM(16))  # 最后一层 return_sequences=False
+model.add(Dense(y.shape[1]))  # 输出层
+
 
 # Compile the model
 model.compile(optimizer=RMSprop(learning_rate=0.001), loss='mse')
