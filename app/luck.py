@@ -72,3 +72,8 @@ for i in range(1, 7):
     print(f"\nRed Ball Position {i} Prediction Results:")
     print(forecast_red[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(1))
  
+
+#  {"issue":"24124","reds":[2,14,15,17,25,30],"blue":11},
+# {"issue":"24123","reds":[2,15,22,26,30,33],"blue":4},,  4 - 10 - 14 - 18 - 24 - 28 - 8
+# 1 - 4 - 8 - 12 - 17 - 23 - 2   9 - 16 - 21 - 25 - 30 - 33 - 14    2 - 8 - 14 - 4/1/9/10/4/16
+# 5 - 10 - 15 - 21 - 25 - 29 - 8   1 - 5 - 8 - 13 - 19 - 24 - 3   10 - 16 - 22 - 26 - 32 - 33 - 14
