@@ -13,7 +13,7 @@ with open('smalldata.json', 'r') as file:
 blues = np.array([entry['blue'] for entry in json_data])
 
 # Define Reference value for standardization
-Referencevalue = 16
+Referencevalue = 8
 
 # Standardize data by subtracting Referencevalue
 standardized_data = blues - Referencevalue
@@ -33,12 +33,12 @@ X, y = create_sequences(standardized_data, n_steps)
 model = Sequential([
     LSTM(128, return_sequences=True, input_shape=(X.shape[1], 1)),
     BatchNormalization(),
-    LSTM(64, return_sequences=True, dropout=0.1),
+    LSTM(64, return_sequences=True),
     BatchNormalization(),
     LSTM(32),
     BatchNormalization(),
     Dense(16, activation='relu'),
-    Dropout(0.1),
+    # Dropout(0.1),
     Dense(1, activation='linear')
 ])
 # Compile the model

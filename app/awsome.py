@@ -46,7 +46,7 @@ def prepare_prophet_dataframe(json_data, y_option='blue', red_position=None, ref
     return df
 
 # Define Reference values for standardization
-reference_value = np.array([4, 10, 14, 19, 23, 28, 8])
+reference_value = np.array([3.42, 8.28, 15.49, 20.06, 24.02, 28.89, 8.55])
 
 # Read data from JSON file
 with open('smalldata.json', 'r') as file:
